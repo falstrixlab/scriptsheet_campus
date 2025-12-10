@@ -17,6 +17,7 @@ use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
 use Config\Exceptions as ExceptionsConfig;
 use Throwable;
+use CodeIgniter\Exceptions\PageNotFoundException;
 
 /**
  * Provides common functions for exception handlers,
@@ -82,9 +83,17 @@ abstract class BaseExceptionHandler
             $trace = $this->maskSensitiveData($trace, $this->config->sensitiveDataInTrace);
         }
 
+        // Provide a legacy-friendly 'heading' for views that expect it
+        if ($firstException instanceof PageNotFoundException || $statusCode === 404) {
+            $heading = '404 Page Not Found';
+        } else {
+            $heading = $exception::class;
+        }
+
         return [
             'title'   => $exception::class,
             'type'    => $exception::class,
+            'heading' => $heading,
             'code'    => $statusCode,
             'message' => $exception->getMessage(),
             'file'    => $exception->getFile(),
